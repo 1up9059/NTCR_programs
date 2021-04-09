@@ -2,7 +2,9 @@ import cv2
 import numpy as np
 from scipy.optimize import curve_fit as fit
 import sys
+
 from matplotlib import pyplot as plt
+
 import argparse 
 import os
 
@@ -74,6 +76,7 @@ def histogram(img, mask):
     return hist
 
 def Listing(y):
+    #Hay que cambiar el codigo para poder usar la funcion flatten
     y1 = []#Creamos una lista vacia
     for i in range(len(y)):#llenamos la lista vacia con los datos de y, esto porque y es de la forma y = [[],[],[]], y necesitamos y = []
         y1.append(y[i][0])  
@@ -120,7 +123,7 @@ def File_Writer(file_name, data_0, data_B, data_G, data_R, fwhm_0, fwhm_B, fwhm_
     
 def MeanAndSigma(x, y):
     mean = sum(x*y)/sum(y) #Calculamos el promedio pesado con los y
-    sigma = np.sqrt(sum(y * (x - mean)**2) / sum(y))#calculamos la desviacion estandar
+    sigma = np.sqrt(sum(y * (x - mean)**2) / (((len(y)-1)/len(y))*sum(y)))#calculamos la desviacion estandar
     #pdb.set_trace()
 
     return [mean, sigma]
@@ -192,7 +195,7 @@ cv2.setMouseCallback(file,draw_dots) #llamamos al MouseCall para dibujar el cont
 name1 = file[0:-4]#definimos un nombre sin la extrension del archivo
 
 #Espacio_de_graficacion_1_de_histograma
-fig1 = plt.figure()
+fig1 = plt.figure(figsize=(20,15))
 ax1 = fig1.add_subplot(111)
 plt.ion()
 
@@ -203,7 +206,7 @@ ax1.set_ylabel('Counts', fontsize= 12)
 ax1.set_title('Histogram of: ' + name1)
 
 #Espacio_de_graficacion_2_de_histograma e imagen
-fig2 = plt.figure()
+fig2 = plt.figure(figsize=(20,15))
 plt.subplots_adjust(left=None, bottom=None, right=None, top=None, wspace=0.5, hspace=0.5)
 ax2 = fig2.add_subplot(121)
 
@@ -250,16 +253,11 @@ while(1):
         dotslist = dotslist.tolist()
         
         #Sacamos el histograma
-        hist_0 = histogram(img_croped_0, mask)#Calculamos el histograma usando la mascara en la imagen de intensidad #len(hist) = 256
-        hist_B = histogram(img_croped_B, mask)#Calculamos el histograma usando la mascara en el canal B 
-        hist_G = histogram(img_croped_G, mask)#Calculamos el histograma usando la mascara en el canal G
-        hist_R = histogram(img_croped_R, mask)#Calculamos el histograma usando la mascara en el canal R
+        hist_0 = Listing(histogram(img_croped_0, mask))#Calculamos el histograma usando la mascara en la imagen de intensidad #len(hist) = 256
+        hist_B = Listing(histogram(img_croped_B, mask))#Calculamos el histograma usando la mascara en el canal B 
+        hist_G = Listing(histogram(img_croped_G, mask))#Calculamos el histograma usando la mascara en el canal G
+        hist_R = Listing(histogram(img_croped_R, mask))#Calculamos el histograma usando la mascara en el canal R
         
-        #aqui ponemos los histogramas en formato correcto
-        hist_0 = Listing(hist_0)
-        hist_B = Listing(hist_B)
-        hist_G = Listing(hist_G)
-        hist_R = Listing(hist_R)
         #pdb.set_trace()
         #obtencion de los maximos de intensidad y cuentas a partir de los histogramas
         [max_count_0, max_intensity_0] = max_values(hist_0)
@@ -398,7 +396,7 @@ while(1):
         Fold_Creator('Results_Data_Analisis_Image:_'+ name1 + '_' + str(i))
         Folder_Change('Results_Data_Analisis_Image:_'+ name1 + '_' + str(i))
         
-        fig1.canvas.flush_events()#Hace un sleep para que se pueda crear la grafica
+        fig1.canvas.flush_events()#Hace un sleep para que se pueda crear la grafic
         fig1.savefig('Histogram of ' + name1 +'_' +str(i) + '.svg')   
         fig2.canvas.flush_events()#Hace un sleep para que se pueda crear la grafica
         fig2.savefig('Image_and_histogram_of_' + name1 + '_' +str(i) + '.svg')
